@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>مدرّب الصوت</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1220; --bg2:#101c33; --card:#16223c; --card2:#1c2b4a;
+  --teal:#2dd4bf; --teal-d:#0d9488; --amber:#fbbf24; --rose:#fb7185;
+  --text:#e8eefb; --muted:#94a3b8; --line:#263556;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Cairo',system-ui,'Segoe UI',Tahoma,sans-serif;
+  background:radial-gradient(1200px 800px at 80% -10%,#123 0%,var(--bg) 55%) fixed,var(--bg);
+  color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;
+  padding:0 16px calc(84px + env(safe-area-inset-bottom));
+}
+header{padding:22px 4px 6px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.25rem}
+.logo img{width:36px;height:36px;border-radius:10px}
+.streak-chip{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#78350f,#92400e);
+  border:1px solid #b4530944;padding:6px 12px;border-radius:999px;font-weight:700;font-size:.95rem}
+.streak-chip .flame{font-size:1.1rem}
+.view{display:none;animation:fadeUp .35s ease both}
+.view.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.hero{margin-top:14px;background:linear-gradient(140deg,var(--card2),var(--card));
+  border:1px solid var(--line);border-radius:24px;padding:22px 20px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset-inline-start:-60px;top:-60px;width:180px;height:180px;
+  background:radial-gradient(circle,#2dd4bf33,transparent 70%);pointer-events:none}
+.hero h1{font-size:1.45rem;font-weight:800;line-height:1.5}
+.hero p{color:var(--muted);margin-top:6px;font-size:.95rem;line-height:1.7}
+.progress-wrap{margin-top:16px}
+.progress-track{height:10px;background:#0d1830;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.progress-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--teal-d),var(--teal));transition:width .6s cubic-bezier(.2,.9,.3,1)}
+.progress-label{display:flex;justify-content:space-between;color:var(--muted);font-size:.82rem;margin-top:6px}
+.cta{width:100%;margin-top:18px;border:none;border-radius:16px;padding:16px;font-family:inherit;
+  font-size:1.1rem;font-weight:800;color:#04211d;background:linear-gradient(135deg,var(--teal),#5eead4);
+  box-shadow:0 8px 24px #2dd4bf33;cursor:pointer;transition:transform .15s ease}
+.cta:active{transform:scale(.97)}
+.cta.done{background:linear-gradient(135deg,#14532d,#166534);color:#bbf7d0;box-shadow:none}
+
+.section-title{margin:26px 4px 12px;font-size:1.05rem;font-weight:800;color:#cbd5e1}
+.cards{display:grid;gap:12px}
+.card{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+  border-radius:18px;padding:16px;cursor:pointer;transition:transform .15s ease,border-color .2s;text-align:start;width:100%;color:inherit;font-family:inherit}
+.card:active{transform:scale(.98)}
+.card.done{border-color:#2dd4bf66}
+.card .ico{width:46px;height:46px;flex:none;border-radius:14px;display:grid;place-items:center;font-size:1.35rem}
+.card .t{font-weight:700;font-size:1rem}
+.card .d{color:var(--muted);font-size:.82rem;margin-top:2px;line-height:1.6}
+.card .check{margin-inline-start:auto;width:26px;height:26px;flex:none;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:transparent;font-size:.8rem}
+.card.done .check{background:var(--teal);border-color:var(--teal);color:#04211d}
+.i-teal{background:#0d948833}.i-amber{background:#b4530933}.i-rose{background:#be123c33}.i-blue{background:#1d4ed833}
+
+/* bottom nav */
+nav{position:fixed;bottom:0;inset-inline:0;max-width:480px;margin:0 auto;z-index:40;
+  background:#0b1220ee;backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  display:flex;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+nav button{flex:1;background:none;border:none;color:var(--muted);font-family:inherit;font-size:.78rem;
+  font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0;cursor:pointer;border-radius:12px}
+nav button .ni{font-size:1.25rem}
+nav button.active{color:var(--teal)}
+
+/* sheets (exercise overlays) */
+.sheet{position:fixed;inset:0;z-index:60;background:radial-gradient(900px 600px at 50% -10%,#14264a 0%,var(--bg) 60%);
+  display:none;flex-direction:column;align-items:center;padding:20px 20px calc(24px + env(safe-area-inset-bottom));overflow-y:auto}
+.sheet.open{display:flex;animation:fadeUp .3s ease both}
+.sheet-head{width:100%;max-width:420px;display:flex;align-items:center;justify-content:space-between}
+.sheet-head h2{font-size:1.15rem;font-weight:800}
+.x-btn{background:var(--card);border:1px solid var(--line);color:var(--muted);width:38px;height:38px;border-radius:12px;font-size:1rem;cursor:pointer;font-family:inherit}
+.sheet-body{flex:1;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:12px 0}
+.sheet-actions{width:100%;max-width:420px;display:flex;flex-direction:column;gap:10px}
+.btn{width:100%;border:none;border-radius:16px;padding:15px;font-family:inherit;font-size:1.05rem;font-weight:800;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--teal),#5eead4);color:#04211d}
+.btn-ghost{background:var(--card);border:1px solid var(--line);color:var(--text)}
+.btn-warm{background:linear-gradient(135deg,var(--amber),#fde68a);color:#451a03}
+.hint{color:var(--muted);font-size:.9rem;line-height:1.8;text-align:center}
+.phase-label{font-size:1.5rem;font-weight:800;min-height:2rem}
+
+/* breathing circle */
+.breath-stage{position:relative;width:260px;height:260px;display:grid;place-items:center;margin:8px 0}
+.breath-ring{position:absolute;inset:0;border-radius:50%;border:2px dashed #2dd4bf44}
+.breath-circle{width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#5eead4,var(--teal-d) 75%);
+  box-shadow:0 0 60px #2dd4bf55,inset 0 0 30px #ffffff22;
+  display:grid;place-items:center;font-size:2.6rem;font-weight:800;color:#04211d;
+  transition:transform 4s ease-in-out}
+.breath-circle.exhale{transition-duration:8s}
+.round-label{color:var(--muted);font-size:.9rem}
+
+/* sss meter */
+.meter{width:100%;height:16px;background:#0d1830;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.meter-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--amber),#fde68a);transition:width .2s linear}
+.big-timer{font-size:3.4rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.sss-target{color:var(--muted);font-size:.88rem}
+.best-chip{background:#78350f55;border:1px solid #b4530955;color:#fcd34d;padding:4px 12px;border-radius:999px;font-size:.82rem;font-weight:700}
+
+/* humming bars */
+.eq{display:flex;align-items:flex-end;gap:6px;height:90px;direction:ltr}
+.eq span{width:10px;border-radius:6px;background:linear-gradient(180deg,#5eead4,var(--teal-d));animation:eq 1s ease-in-out infinite;animation-play-state:paused}
+.eq.play span{animation-play-state:running}
+.eq span:nth-child(1){height:40%;animation-delay:0s}.eq span:nth-child(2){height:70%;animation-delay:.12s}
+.eq span:nth-child(3){height:100%;animation-delay:.24s}.eq span:nth-child(4){height:60%;animation-delay:.36s}
+.eq span:nth-child(5){height:85%;animation-delay:.48s}.eq span:nth-child(6){height:45%;animation-delay:.6s}
+.eq span:nth-child(7){height:75%;animation-delay:.72s}
+@keyframes eq{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+
+/* reading */
+.passage{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;
+  font-size:1.08rem;line-height:2.1;max-height:38vh;overflow-y:auto}
+.read-timer{font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--teal)}
+
+/* recordings */
+.mic-btn{width:110px;height:110px;border-radius:50%;border:none;cursor:pointer;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--rose),#fda4af);color:#450a0a;font-size:2.4rem;margin:14px auto 6px;
+  box-shadow:0 10px 30px #fb718544;transition:transform .15s}
+.mic-btn:active{transform:scale(.94)}
+.mic-btn.rec{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 #fb718566}50%{box-shadow:0 0 0 22px #fb718500}}
+.rec-list{display:grid;gap:10px;margin-top:14px}
+.rec-day{color:var(--muted);font-size:.82rem;font-weight:700;margin:10px 4px 2px}
+.rec-item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.rec-item .play{width:40px;height:40px;flex:none;border-radius:50%;border:none;background:var(--teal-d);color:#fff;font-size:1rem;cursor:pointer}
+.rec-item .meta{flex:1;min-width:0}
+.rec-item .meta .n{font-weight:700;font-size:.9rem}
+.rec-item .meta .t{color:var(--muted);font-size:.76rem}
+.rec-item .del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:6px}
+.empty{color:var(--muted);text-align:center;font-size:.9rem;margin-top:26px;line-height:1.9}
+.privacy{background:#14532d33;border:1px solid #16653455;color:#86efac;border-radius:14px;padding:10px 14px;font-size:.82rem;line-height:1.8;margin-top:16px}
+
+/* tips */
+.tip{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;line-height:1.9;font-size:.93rem}
+.tip b{color:var(--teal)}
+.doctor{background:#7f1d1d2e;border:1px solid #be123c55;border-radius:16px;padding:14px 16px;margin-top:16px;line-height:1.9;font-size:.9rem;color:#fecdd3}
+
+/* celebration */
+.cele{text-align:center;display:none;flex-direction:column;align-items:center;gap:12px}
+.cele.show{display:flex}
+.cele .emoji{font-size:4rem;animation:bounce 1s ease infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.toast{position:fixed;bottom:100px;inset-inline:24px;max-width:420px;margin:0 auto;z-index:80;background:#052e2b;border:1px solid #2dd4bf66;
+  color:#a7f3d0;padding:12px 16px;border-radius:14px;text-align:center;font-weight:700;font-size:.9rem;
+  opacity:0;transform:translateY(12px);transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><img src="icon.svg" alt=""><span>مدرّب الصوت</span></div>
+  <div class="streak-chip"><span class="flame">🔥</span><span id="streakNum">٠</span><span style="font-size:.75rem;color:#fcd34d">يوم</span></div>
+</header>
+
+<!-- ============ HOME ============ -->
+<main id="view-home" class="view active">
+  <section class="hero">
+    <h1 id="greeting">أهلاً 👋</h1>
+    <p>١٠ دقايق تدريب يومي: تنفّس، زفير طويل، همهمة، وقراءة. صوتك هيتحسن بالتمرين مش بالموهبة بس.</p>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label"><span id="progressText">٠ من ٤ تمارين</span><span>تمرين النهارده</span></div>
+    </div>
+    <button class="cta" id="startBtn">ابدأ تمرين النهارده 💪</button>
+  </section>
+
+  <h3 class="section-title">تمارين النهارده</h3>
+  <div class="cards" id="exerciseCards">
+    <button class="card" data-ex="breath">
+      <div class="ico i-teal">🫁</div>
+      <div><div class="t">تنفّس بطني</div><div class="d">شهيق ٤ ثواني من البطن، زفير ٨ ثواني — ٤ جولات</div></div>
+      <div class="check">✓</div>
+    </button>
+    <button class="card" data-ex="sss">
+      <div class="ico i-amber">🐍</div>
+      <div><div class="t">زفير «سسس» الطويل</div><div class="d">تحكّم في الزفير لأطول وقت — ٣ محاولات</div></div>
+      <div class="check">✓</div>
+    </button>
+    <button class="card" data-ex="hum">
+      <div class="ico i-rose">🎵</div>
+      <div><div class="t">همهمة</div><div class="d">«مممم» هادية لتسخين الصوت — دقيقتين</div></div>
+      <div class="check">✓</div>
+    </button>
+    <button class="card" data-ex="read">
+      <div class="ico i-blue">📖</div>
+      <div><div class="t">قراءة بصوت عالي</div><div class="d">فم مفتوح وسرعة بطيئة — ٣ دقايق</div></div>
+      <div class="check">✓</div>
+    </button>
+  </div>
+
+  <h3 class="section-title">صوتك</h3>
+  <div class="cards">
+    <button class="card" id="goRecord">
+      <div class="ico i-rose">🎙️</div>
+      <div><div class="t">سجّل صوتك</div><div class="d">اسمع نفسك وقارن بين الأيام — التسجيلات على جهازك بس</div></div>
+    </button>
+  </div>
+</main>
+
+<!-- ============ RECORDINGS ============ -->
+<main id="view-rec" class="view">
+  <section class="hero" style="text-align:center">
+    <h1 style="font-size:1.2rem">سجّل صوتك 🎙️</h1>
+    <p>سجّل نفس المقطع كل يوم واسمع الفرق بنفسك. اضغط الميكروفون عشان تبدأ، واضغطه تاني عشان توقف.</p>
+    <button class="mic-btn" id="micBtn">🎙️</button>
+    <div class="big-timer" id="recTimer" style="font-size:1.6rem;display:none">٠:٠٠</div>
+    <div class="privacy">🔒 تسجيلاتك محفوظة على جهازك بس، ومش بتتبعت لأي حد.</div>
+  </section>
+  <div id="recList" class="rec-list"></div>
+</main>
+
+<!-- ============ TIPS ============ -->
+<main id="view-tips" class="view">
+  <h3 class="section-title" style="margin-top:18px">نصايح يومية</h3>
+  <div class="tip">💧 <b>اشرب مية</b> بشكل كافي طول اليوم، الحبال الصوتية بتحب الترطيب.</div>
+  <div class="tip">🗣️ <b>بلاش تصرخ أو تهمس لفترات طويلة</b>، الاتنين بيتعبوا الصوت.</div>
+  <div class="tip">🫁 <b>الشهيق من البطن مش من الصدر</b>: البطن تطلع لقدام وإنت بتشهق، والكتف ثابت. املا حوالي ٧٠٪ بس، نفس مريح من غير شد.</div>
+  <div class="tip">✂️ <b>اتكلم بجمل أقصر</b> وخد نفس صغير عند الوقفات الطبيعية، وابدأ بهدوء مش بدفعة قوية.</div>
+  <div class="tip">🎤 <b>سخّن صوتك</b> بالهمهمة قبل الكلام أو الغناء، زي ما بيسخّن الجسم قبل الرياضة.</div>
+  <div class="tip">📈 <b>الفرق بيبان بعد حوالي ٤ أسابيع</b> من التدريب المنتظم. المواظبة أهم من المدة.</div>
+  <div class="doctor">🩺 <b>مهم:</b> لو بتحس إنك مش قادر تاخد نفسك بشكل متكرر أو في حياتك اليومية، أو معاه ألم في الصدر أو دوخة، ده يستاهل كشف عند دكتور. التمارين دي بتساعد صوتك، لكنها مش بديل عن الكشف الطبي.</div>
+</main>
+
+<!-- ============ SHEET: BREATHING ============ -->
+<div class="sheet" id="sheet-breath">
+  <div class="sheet-head"><h2>🫁 تنفّس بطني</h2><button class="x-btn" data-close>✕</button></div>
+  <div class="sheet-body">
+    <div class="phase-label" id="breathPhase">جاهز؟</div>
+    <div class="breath-stage">
+      <div class="breath-ring"></div>
+      <div class="breath-circle" id="breathCircle"><span id="breathCount">–</span></div>
+    </div>
+    <div class="round-label" id="breathRound">٤ جولات: شهيق ٤ ثواني من البطن، زفير ٨ ثواني</div>
+    <div class="hint">حط إيدك على بطنك وحسّها بتطلع مع الشهيق. الكتف والصدر ثابتين.</div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn btn-primary" id="breathStart">ابدأ</button>
+  </div>
+</div>
+
+<!-- ============ SHEET: SSS ============ -->
+<div class="sheet" id="sheet-sss">
+  <div class="sheet-head"><h2>🐍 زفير «سسس» الطويل</h2><button class="x-btn" data-close>✕</button></div>
+  <div class="sheet-body" id="sssIntro">
+    <div class="phase-label">خد شهيق من البطن واعمل «سسسس» بهدوء</div>
+    <div class="hint">زفير خفيف وثابت، من غير ما تدفع الهواء بقوة. لما الهواء يخلص اضغط «خلصت». لو النفس بيتقطع، خفف قوة الزفير.<br><br>هدفك النهارده: <b id="sssTargetText" style="color:var(--amber)"></b></div>
+  </div>
+  <div class="sheet-body" id="sssRun" style="display:none">
+    <div class="big-timer" id="sssTimer">٠</div>
+    <div class="sss-target">ثانية — الهدف <span id="sssTargetInline"></span></div>
+    <div class="meter" style="width:100%"><div class="meter-fill" id="sssMeter"></div></div>
+    <div class="best-chip" id="sssBest"></div>
+  </div>
+  <div class="sheet-body" id="sssResult" style="display:none">
+    <div class="phase-label" id="sssResultText"></div>
+    <div class="hint" id="sssAttemptLabel"></div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn btn-warm" id="sssStartBtn">ابدأ المحاولة</button>
+    <button class="btn btn-primary" id="sssStopBtn" style="display:none">خلصت ✋</button>
+    <button class="btn btn-primary" id="sssNextBtn" style="display:none">المحاولة الجاية</button>
+  </div>
+</div>
+
+<!-- ============ SHEET: HUM ============ -->
+<div class="sheet" id="sheet-hum">
+  <div class="sheet-head"><h2>🎵 همهمة</h2><button class="x-btn" data-close>✕</button></div>
+  <div class="sheet-body">
+    <div class="eq" id="eqBars"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="big-timer" id="humTimer">٢:٠٠</div>
+    <div class="phase-label" style="font-size:1.1rem" id="humHint">اهمهم «مممم» بهدوء وشفايف مرتخية</div>
+    <div class="hint">حس بالاهتزاز في شفايفك ومناخيرك. غيّر الطبقة (عالي/واطي) ببطء، وخد نفس طبيعي لما تحتاج.</div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn btn-primary" id="humStart">ابدأ الدقيقتين</button>
+  </div>
+</div>
+
+<!-- ============ SHEET: READ ============ -->
+<div class="sheet" id="sheet-read">
+  <div class="sheet-head"><h2>📖 قراءة بصوت عالي</h2><button class="x-btn" data-close>✕</button></div>
+  <div class="sheet-body" style="justify-content:flex-start">
+    <div class="read-timer" id="readTimer">٣:٠٠</div>
+    <div class="passage" id="passage"></div>
+    <div class="hint">افتح فمك كويس، اتكلم أبطأ من المعتاد، وأتمّ أواخر الكلمات. خد نفس عند الوقفات.</div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn btn-primary" id="readStart">ابدأ القراءة</button>
+  </div>
+</div>
+
+<!-- ============ SHEET: CELEBRATION ============ -->
+<div class="sheet" id="sheet-cele">
+  <div class="sheet-body">
+    <div class="cele show">
+      <div class="emoji">🎉</div>
+      <div class="phase-label">خلصت تمرين النهارده!</div>
+      <div class="hint" id="celeStreak"></div>
+    </div>
+  </div>
+  <div class="sheet-actions">
+    <button class="btn btn-primary" data-close>تمام 💪</button>
+  </div>
+</div>
+
+<nav>
+  <button class="active" data-view="view-home"><span class="ni">🏠</span>النهارده</button>
+  <button data-view="view-rec"><span class="ni">🎙️</span>تسجيلاتي</button>
+  <button data-view="view-tips"><span class="ni">💡</span>نصايح</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+const arNum = n => Number(n).toLocaleString('ar-EG');
+const fmtTime = s => { s=Math.max(0,Math.round(s)); return arNum(Math.floor(s/60)) + ':' + arNum(s%60).padStart(2,'٠'); };
+const todayKey = () => new Date().toLocaleDateString('en-CA');
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
+
+/* ================= state ================= */
+const STEPS = ['breath','sss','hum','read'];
+const store = {
+  get progress(){ try{ return JSON.parse(localStorage.getItem('vt_p_'+todayKey()))||[]; }catch(e){ return []; } },
+  set progress(v){ localStorage.setItem('vt_p_'+todayKey(), JSON.stringify(v)); },
+  get streak(){ return +(localStorage.getItem('vt_streak')||0); },
+  set streak(v){ localStorage.setItem('vt_streak', v); },
+  get lastDone(){ return localStorage.getItem('vt_lastDone')||''; },
+  set lastDone(v){ localStorage.setItem('vt_lastDone', v); },
+  get sssBest(){ return +(localStorage.getItem('vt_sss_best')||0); },
+  set sssBest(v){ localStorage.setItem('vt_sss_best', v); },
+  get sssTarget(){ return +(localStorage.getItem('vt_sss_target')||8); },
+  set sssTarget(v){ localStorage.setItem('vt_sss_target', v); },
+};
+/* streak decays visually if yesterday was missed */
+(function(){
+  if(!store.lastDone) return;
+  const y = new Date(); y.setDate(y.getDate()-1);
+  if(store.lastDone !== todayKey() && store.lastDone !== y.toLocaleDateString('en-CA')) store.streak = 0;
+})();
+
+function refreshHome(){
+  $('streakNum').textContent = arNum(store.streak);
+  const done = store.progress;
+  $('progressFill').style.width = (done.length/STEPS.length*100)+'%';
+  $('progressText').textContent = arNum(done.length)+' من '+arNum(STEPS.length)+' تمارين';
+  document.querySelectorAll('#exerciseCards .card').forEach(c=>{
+    c.classList.toggle('done', done.includes(c.dataset.ex));
+  });
+  const all = STEPS.every(s=>done.includes(s));
+  const btn = $('startBtn');
+  if(all){ btn.textContent='تمرين النهارده خلص ✅'; btn.classList.add('done'); }
+  else { btn.classList.remove('done'); btn.textContent = done.length ? 'كمّل تمرين النهارده 💪' : 'ابدأ تمرين النهارده 💪'; }
+  const h = new Date().getHours();
+  $('greeting').textContent = h<12 ? 'صباح الخير 👋' : h<18 ? 'مساء الخير 👋' : 'مساء النور 👋';
+}
+
+function markDone(step){
+  const p = store.progress;
+  if(!p.includes(step)){ p.push(step); store.progress = p; }
+  refreshHome();
+  if(STEPS.every(s=>p.includes(s))){
+    if(store.lastDone !== todayKey()){
+      const y = new Date(); y.setDate(y.getDate()-1);
+      store.streak = (store.lastDone === y.toLocaleDateString('en-CA')) ? store.streak+1 : 1;
+      store.lastDone = todayKey();
+    }
+    $('celeStreak').textContent = 'سلسلة أيامك: '+arNum(store.streak)+' 🔥 — كل يوم بيفرق، بكرة كمان؟';
+    refreshHome();
+    openSheet('sheet-cele');
+  }
+}
+
+/* ================= nav & sheets ================= */
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('main.view').forEach(v=>v.classList.remove('active'));
+  $(b.dataset.view).classList.add('active');
+  if(b.dataset.view==='view-rec') renderRecs();
+}));
+function openSheet(id){ $(id).classList.add('open'); }
+function closeSheet(sheet){ sheet.classList.remove('open'); stopAllTimers(); }
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',e=>{
+  closeSheet(e.target.closest('.sheet'));
+}));
+
+/* ordered routine: next unfinished step */
+const sheetFor = { breath:'sheet-breath', sss:'sheet-sss', hum:'sheet-hum', read:'sheet-read' };
+$('startBtn').addEventListener('click',()=>{
+  const next = STEPS.find(s=>!store.progress.includes(s));
+  if(next) openSheet(sheetFor[next]); else openSheet('sheet-cele');
+});
+document.querySelectorAll('#exerciseCards .card').forEach(c=>c.addEventListener('click',()=>{
+  openSheet(sheetFor[c.dataset.ex]);
+}));
+$('goRecord').addEventListener('click',()=>{ document.querySelector('nav button[data-view="view-rec"]').click(); });
+
+let activeTimers = [];
+function every(ms,fn){ const t=setInterval(fn,ms); activeTimers.push(t); return t; }
+function stopAllTimers(){ activeTimers.forEach(clearInterval); activeTimers=[]; }
+
+/* ================= 1) breathing ================= */
+const ROUNDS=4, IN_S=4, OUT_S=8;
+let breathRun=null;
+$('breathStart').addEventListener('click',()=>{
+  if(breathRun) return;
+  breathRun=true; $('breathStart').style.display='none';
+  let round=0;
+  const circle=$('breathCircle'), phase=$('breathPhase'), count=$('breathCount');
+  function doPhase(){
+    if(round>=ROUNDS){
+      breathRun=false; phase.textContent='أحسنت 👏'; count.textContent='✓';
+      circle.style.transform='scale(1)';
+      $('breathRound').textContent='خلصت '+arNum(ROUNDS)+' جولات';
+      markDone('breath');
+      $('breathStart').textContent='تاني من الأول'; $('breathStart').style.display='block';
+      return;
+    }
+    /* inhale */
+    phase.textContent='شهيق 🌬️'; circle.classList.remove('exhale'); circle.style.transform='scale(1.55)';
+    $('breathRound').textContent='الجولة '+arNum(round+1)+' من '+arNum(ROUNDS);
+    let t=IN_S; count.textContent=arNum(t);
+    every(1000,()=>{ t--; if(t>0) count.textContent=arNum(t); });
+    setTimeout(()=>{
+      stopAllTimers();
+      /* exhale */
+      phase.textContent='زفير 🍃'; circle.classList.add('exhale'); circle.style.transform='scale(1)';
+      let t2=OUT_S; count.textContent=arNum(t2);
+      every(1000,()=>{ t2--; if(t2>0) count.textContent=arNum(t2); });
+      setTimeout(()=>{ stopAllTimers(); round++; doPhase(); }, OUT_S*1000);
+    }, IN_S*1000);
+  }
+  doPhase();
+});
+
+/* ================= 2) sss exhale ================= */
+let sssAttempt=0, sssTimerInt=null, sssElapsed=0;
+function sssShow(id){
+  ['sssIntro','sssRun','sssResult'].forEach(x=>$(x).style.display = x===id?'flex':'none');
+  $('sssStartBtn').style.display = id==='sssIntro'?'block':'none';
+  $('sssStopBtn').style.display = id==='sssRun'?'block':'none';
+  $('sssNextBtn').style.display = id==='sssResult'?'block':'none';
+}
+function sssSetup(){
+  sssAttempt=0;
+  $('sssTargetText').textContent = arNum(store.sssTarget)+' ثواني';
+  sssShow('sssIntro');
+}
+$('sssStartBtn').addEventListener('click',()=>{
+  sssAttempt++; sssElapsed=0;
+  $('sssTargetInline').textContent = arNum(store.sssTarget)+' ثانية';
+  $('sssBest').textContent = store.sssBest? 'أفضل وقت ليك: '+arNum(store.sssBest)+' ثانية' : 'أول مرة — يلا نشوف';
+  $('sssTimer').textContent=arNum(0); $('sssMeter').style.width='0%';
+  sssShow('sssRun');
+  const t0=Date.now();
+  sssTimerInt=setInterval(()=>{
+    sssElapsed=Math.floor((Date.now()-t0)/1000);
+    $('sssTimer').textContent=arNum(sssElapsed);
+    $('sssMeter').style.width=Math.min(100, sssElapsed/store.sssTarget*100)+'%';
+  },200);
+});
+$('sssStopBtn').addEventListener('click',()=>{
+  clearInterval(sssTimerInt);
+  const beat = sssElapsed>=store.sssTarget;
+  const isBest = sssElapsed>store.sssBest;
+  if(isBest) store.sssBest = sssElapsed;
+  if(beat) store.sssTarget = Math.min(60, store.sssTarget+2);
+  $('sssResultText').textContent = beat ? ('برافو! '+arNum(sssElapsed)+' ثانية 🎉') : (arNum(sssElapsed)+' ثانية — كويس، بتتحسن');
+  $('sssAttemptLabel').textContent = 'محاولة '+arNum(sssAttempt)+' من ٣' + (isBest?' — رقم قياسي جديد! 🏆':'');
+  $('sssNextBtn').textContent = sssAttempt<3 ? 'المحاولة الجاية' : 'خلّصت التمرين';
+  sssShow('sssResult');
+});
+$('sssNextBtn').addEventListener('click',()=>{
+  if(sssAttempt<3){ $('sssTargetText').textContent=arNum(store.sssTarget)+' ثواني'; sssShow('sssIntro'); }
+  else { markDone('sss'); closeSheet($('sheet-sss')); sssSetup(); }
+});
+document.querySelector('#sheet-sss [data-close]').addEventListener('click',sssSetup);
+
+/* ================= 3) humming ================= */
+let humInt=null, humLeft=120;
+const humHints=['اهمهم «مممم» بهدوء وشفايف مرتخية','طلّع الطبقة عالي ببطء… وارجع واطي','حس بالاهتزاز في شفايفك','خد نفس طبيعي لما تحتاج وكمّل'];
+$('humStart').addEventListener('click',()=>{
+  if(humInt) return;
+  humLeft=120; $('humStart').style.display='none'; $('eqBars').classList.add('play');
+  $('humTimer').textContent=fmtTime(humLeft);
+  let hi=0;
+  humInt=setInterval(()=>{
+    humLeft--;
+    $('humTimer').textContent=fmtTime(humLeft);
+    if(humLeft%30===0 && humLeft>0){ hi=(hi+1)%humHints.length; $('humHint').textContent=humHints[hi]; }
+    if(humLeft<=0){
+      clearInterval(humInt); humInt=null; $('eqBars').classList.remove('play');
+      $('humHint').textContent='خلصت! صوتك اتسخّن 👏';
+      $('humTimer').textContent='✓';
+      markDone('hum');
+      $('humStart').textContent='تاني من الأول'; $('humStart').style.display='block';
+    }
+  },1000);
+});
+
+/* ================= 4) reading ================= */
+const PASSAGES=[
+'الصوت القوي مش اللي بيعلى، الصوت القوي اللي بيوصل واضح ومريح. لما بتتكلم ببطء وبنفس ثابت، الكلمات بتاخد وزنها، واللي قدامك بيسمعك من غير ما تتعب نفسك. خد نفسك من بطنك، وابدأ الجملة بهدوء، وخلّي آخر كلمة توصل زي أولها.',
+'في كل مرة بتتدرب فيها، إنت بتعلّم جسمك عادة جديدة. النَّفَس الطويل مش موهبة، دي عضلة بتتقوى بالتكرار. النهارده أحسن من إمبارح، وبكرة أحسن من النهارده. المهم مش السرعة، المهم إنك بتظهر كل يوم.',
+'الهواء اللي بيخرج بهدوء بيعيش أطول من الهواء اللي بيتدفق بقوة. زي ما بتمسك خرطوم مية وتضيّق الفتحة عشان الخط يوصل أبعد، كده الزفير الهادي بيدّي صوتك مدى أطول وثبات أعلى.',
+'قبل ما تغني أو تتكلم قدام ناس، خد دقيقة تسخّن فيها صوتك. همهمة خفيفة، نفس عميق، وابتسامة مرتخية. الصوت المرتاح بيطلع أحلى من الصوت المشدود، والاسترخاء بيبدأ من الكتفين والفك.'
+];
+let readInt=null, readLeft=180;
+(function pickPassage(){
+  const day=Math.floor(Date.now()/86400000);
+  $('passage').textContent=PASSAGES[day%PASSAGES.length];
+})();
+$('readStart').addEventListener('click',()=>{
+  if(readInt) return;
+  readLeft=180; $('readStart').style.display='none';
+  $('readTimer').textContent=fmtTime(readLeft);
+  readInt=setInterval(()=>{
+    readLeft--;
+    $('readTimer').textContent=fmtTime(readLeft);
+    if(readLeft<=0){
+      clearInterval(readInt); readInt=null;
+      $('readTimer').textContent='✓';
+      markDone('read');
+      $('readStart').textContent='تاني من الأول'; $('readStart').style.display='block';
+    }
+  },1000);
+});
+
+/* ================= recordings (IndexedDB) ================= */
+let db=null, mediaRec=null, recChunks=[], recStartTs=0, recTick=null;
+function openDB(){ return new Promise((res,rej)=>{
+  const rq=indexedDB.open('voice-trainer',1);
+  rq.onupgradeneeded=e=>{ e.target.result.createObjectStore('recs',{keyPath:'id',autoIncrement:true}); };
+  rq.onsuccess=e=>{ db=e.target.result; res(); };
+  rq.onerror=rej;
+});}
+openDB().then(renderRecs).catch(()=>{ $('recList').innerHTML='<div class="empty">المتصفح مش بيدعم حفظ التسجيلات هنا.</div>'; });
+
+$('micBtn').addEventListener('click',async()=>{
+  if(mediaRec && mediaRec.state==='recording'){ mediaRec.stop(); return; }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    recChunks=[];
+    mediaRec=new MediaRecorder(stream);
+    mediaRec.ondataavailable=e=>{ if(e.data.size) recChunks.push(e.data); };
+    mediaRec.onstop=()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      clearInterval(recTick); recTick=null;
+      $('micBtn').classList.remove('rec'); $('recTimer').style.display='none';
+      const blob=new Blob(recChunks,{type:mediaRec.mimeType||'audio/webm'});
+      const dur=Math.round((Date.now()-recStartTs)/1000);
+      const tx=db.transaction('recs','readwrite');
+      tx.objectStore('recs').add({ts:Date.now(),dur,blob});
+      tx.oncomplete=()=>{ renderRecs(); toast('اتحفظ التسجيل ✅'); };
+    };
+    mediaRec.start();
+    recStartTs=Date.now();
+    $('micBtn').classList.add('rec'); $('recTimer').style.display='block';
+    $('recTimer').textContent=fmtTime(0);
+    recTick=setInterval(()=>{ $('recTimer').textContent=fmtTime((Date.now()-recStartTs)/1000); },500);
+  }catch(e){
+    toast('محتاج إذن الميكروفون عشان تسجل 🎙️');
+  }
+});
+
+let curAudio=null;
+function renderRecs(){
+  if(!db) return;
+  const tx=db.transaction('recs','readonly');
+  const rq=tx.objectStore('recs').getAll();
+  rq.onsuccess=()=>{
+    const recs=rq.result.sort((a,b)=>b.ts-a.ts);
+    const list=$('recList'); list.innerHTML='';
+    if(curAudio){ curAudio.pause(); curAudio=null; }
+    if(!recs.length){ list.innerHTML='<div class="empty">لسه مفيش تسجيلات.<br>سجّل أول مقطع النهارده وارجع قارنه بعد أسبوع 🎧</div>'; return; }
+    let lastDay='';
+    recs.forEach(r=>{
+      const d=new Date(r.ts);
+      const day=d.toLocaleDateString('en-CA');
+      if(day!==lastDay){
+        lastDay=day;
+        const lbl=document.createElement('div'); lbl.className='rec-day';
+        const tdy=todayKey(); const y=new Date(); y.setDate(y.getDate()-1);
+        lbl.textContent = day===tdy?'النهارده':(day===y.toLocaleDateString('en-CA')?'إمبارح':d.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long'}));
+        list.appendChild(lbl);
+      }
+      const item=document.createElement('div'); item.className='rec-item';
+      const play=document.createElement('button'); play.className='play'; play.textContent='▶';
+      const meta=document.createElement('div'); meta.className='meta';
+      meta.innerHTML='<div class="n">تسجيل '+d.toLocaleTimeString('ar-EG',{hour:'numeric',minute:'2-digit'})+'</div><div class="t">'+arNum(r.dur)+' ثانية</div>';
+      const del=document.createElement('button'); del.className='del'; del.textContent='🗑️';
+      play.addEventListener('click',()=>{
+        if(curAudio && curAudio._id===r.id && !curAudio.paused){ curAudio.pause(); play.textContent='▶'; return; }
+        if(curAudio){ curAudio.pause(); }
+        curAudio=new Audio(URL.createObjectURL(r.blob)); curAudio._id=r.id;
+        document.querySelectorAll('.rec-item .play').forEach(p=>p.textContent='▶');
+        curAudio.play(); play.textContent='⏸';
+        curAudio.onended=()=>{ play.textContent='▶'; };
+      });
+      del.addEventListener('click',()=>{
+        const t2=db.transaction('recs','readwrite');
+        t2.objectStore('recs').delete(r.id);
+        t2.oncomplete=renderRecs;
+      });
+      item.appendChild(play); item.appendChild(meta); item.appendChild(del);
+      list.appendChild(item);
+    });
+  };
+}
+
+/* ================= pwa ================= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+refreshHome();
+</script>
+</body>
+</html>
